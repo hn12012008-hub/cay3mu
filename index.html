@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cơ Khí 3D - Khám Phá Cấu Tạo & Động Học Máy Móc</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%220%22%20100%20100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 3D WebGL Canvas Container -->
+    <div id="viewport-container"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="top-navbar glass-panel">
+        <div class="brand-area">
+            <i class="fa-solid fa-gear brand-icon"></i>
+            <div>
+                <div class="brand-title">CƠ KHÍ 3D · MECHLAB</div>
+                <div class="brand-subtitle">Mô Phỏng Cấu Tạo & Động Học Máy Móc</div>
+            </div>
+        </div>
+
+        <!-- Mechanism Switcher Tabs -->
+        <nav class="mechanism-tabs">
+            <button class="model-tab-btn active" data-model="engine">
+                <i class="fa-solid fa-fire-flame-curved"></i> Động Cơ 4 Kỳ
+            </button>
+            <button class="model-tab-btn" data-model="planetary">
+                <i class="fa-solid fa-arrows-spin"></i> Hộp Số Hành Tinh
+            </button>
+            <button class="model-tab-btn" data-model="steering">
+                <i class="fa-solid fa-car-side"></i> Thước Lái Ô Tô
+            </button>
+        </nav>
+
+        <!-- Right Header Actions -->
+        <div class="header-actions">
+            <button id="btn-sound-toggle" class="icon-btn" title="Bật/Tắt Âm Thanh Động Cơ & Cơ Khí">
+                <i class="fa-solid fa-volume-xmark"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Top Right Telemetry HUD -->
+    <aside class="telemetry-hud glass-panel">
+        <!-- 1. Engine Telemetry -->
+        <div id="engine-telemetry">
+            <div class="hud-header">
+                <span class="hud-title"><i class="fa-solid fa-microchip"></i> Động Học Xilanh</span>
+                <span id="hud-stroke-badge" class="badge badge-power">KỲ 3: NỔ</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Kỳ hoạt động:</span>
+                <span id="hud-stroke-name" class="hud-value">Nổ - Sinh công</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Góc quay cốt máy (θ):</span>
+                <span id="hud-crank-angle" class="hud-value">360.0°</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Hành trình Piston:</span>
+                <span id="hud-piston-pos" class="hud-value">48.0 mm</span>
+            </div>
+            <div class="hud-stroke-bar">
+                <div id="stroke-progress-fill" class="hud-stroke-fill"></div>
+            </div>
+        </div>
+
+        <!-- 2. Planetary Gearbox Telemetry -->
+        <div id="planetary-telemetry" style="display: none;">
+            <div class="hud-header">
+                <span class="hud-title"><i class="fa-solid fa-arrows-spin"></i> Hệ Bánh Răng Hành Tinh</span>
+                <span class="badge badge-intake">EPICYCLIC</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Tỉ số truyền (Ratio):</span>
+                <span id="hud-planet-ratio" class="hud-value">3.33 : 1</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Góc quay Sun (Mặt trời):</span>
+                <span id="hud-planet-sun" class="hud-value">0°</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Góc quay Carrier (Cần dẫn):</span>
+                <span id="hud-planet-carrier" class="hud-value">0°</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Góc quay Ring (Vành ngoài):</span>
+                <span id="hud-planet-ring" class="hud-value">0°</span>
+            </div>
+            <div id="hud-planet-desc" style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 8px;"></div>
+
+            <!-- Planetary Modes -->
+            <div id="planetary-mode-selector" class="planetary-selector">
+                <span style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Chọn Chế Độ Truyền:</span>
+                <button class="planetary-mode-btn active" data-mode="reduction">
+                    <i class="fa-solid fa-lock"></i> Khóa Vành Răng (Giảm tốc & Tăng Momen)
+                </button>
+                <button class="planetary-mode-btn" data-mode="reverse">
+                    <i class="fa-solid fa-rotate-left"></i> Khóa Cần Dẫn (Đảo Chiều Quay / Số Lùi)
+                </button>
+                <button class="planetary-mode-btn" data-mode="overdrive">
+                    <i class="fa-solid fa-gauge-high"></i> Khóa Bánh Trời (Tăng Tốc Overdrive)
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. Steering Rack & Pinion Telemetry -->
+        <div id="steering-telemetry" style="display: none;">
+            <div class="hud-header">
+                <span class="hud-title"><i class="fa-solid fa-car-side"></i> Thước Lái Bánh Răng</span>
+                <span class="badge badge-compression">ACKERMAN</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Hướng bẻ lái:</span>
+                <span id="hud-steer-dir" class="hud-value">Thẳng (Center)</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Độ dịch chuyển thanh răng:</span>
+                <span id="hud-rack-travel" class="hud-value">0.0 mm</span>
+            </div>
+            <div class="hud-data-row">
+                <span class="hud-label">Góc quay bánh xe dẫn hướng:</span>
+                <span id="hud-steer-angle" class="hud-value">0.0°</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Bottom Interactive Control Dock -->
+    <footer class="bottom-dock glass-panel">
+        <!-- Play / Pause -->
+        <button id="btn-play-pause" class="dock-btn-main">
+            <i class="fa-solid fa-pause"></i> <span>Tạm dừng</span>
+        </button>
+
+        <!-- RPM Speed Slider -->
+        <div class="slider-group">
+            <div class="slider-header">
+                <span>TỐC ĐỘ VÒNG QUAY</span>
+                <span id="rpm-val">900</span> <span style="color:var(--text-muted)">RPM</span>
+            </div>
+            <input type="range" id="rpm-slider" min="60" max="3000" step="30" value="900">
+        </div>
+
+        <!-- Exploded View Slider (Bóc tách chi tiết) -->
+        <div class="slider-group">
+            <div class="slider-header">
+                <span>BÓC TÁCH (EXPLODED)</span>
+                <span id="explode-val">0%</span>
+            </div>
+            <input type="range" id="explode-slider" min="0" max="100" step="1" value="0">
+        </div>
+
+        <!-- Crank Angle Scrub Slider (When paused) -->
+        <div class="slider-group" id="scrub-container">
+            <div class="slider-header">
+                <span>TUA GÓC QUAY (θ)</span>
+                <span id="scrub-val">0°</span>
+            </div>
+            <input type="range" id="scrub-slider" min="0" max="720" step="1" value="0">
+        </div>
+
+        <div class="divider-vertical"></div>
+
+        <!-- Render Modes -->
+        <div class="render-mode-group">
+            <button class="dock-small-btn render-mode-btn active" data-mode="shaded" title="Chế độ Kim loại PBR">
+                <i class="fa-solid fa-cube"></i> PBR
+            </button>
+            <button class="dock-small-btn render-mode-btn" data-mode="wireframe" title="Khung dây kỹ thuật CAD">
+                <i class="fa-solid fa-border-all"></i> Wireframe
+            </button>
+            <button class="dock-small-btn render-mode-btn" data-mode="xray" title="Trong suốt nhìn thấu bên trong">
+                <i class="fa-solid fa-ghost"></i> X-Ray
+            </button>
+        </div>
+
+        <div class="divider-vertical"></div>
+
+        <!-- Camera Views -->
+        <div class="view-preset-group">
+            <button class="dock-small-btn camera-preset-btn" data-view="isometric" title="Góc nhìn 3D toàn cảnh">
+                <i class="fa-solid fa-arrows-up-down-left-right"></i> 3D
+            </button>
+            <button class="dock-small-btn camera-preset-btn" data-view="front" title="Nhìn trực diện mặt trước">
+                Trực diện
+            </button>
+            <button class="dock-small-btn camera-preset-btn" data-view="side" title="Nhìn từ cạnh bên">
+                Bên hông
+            </button>
+            <button class="dock-small-btn camera-preset-btn" data-view="combustion" title="Cận cảnh buồng đốt & nắp máy">
+                <i class="fa-solid fa-magnifying-glass-plus"></i> Buồng đốt
+            </button>
+        </div>
+    </footer>
+
+    <!-- Part Inspector Slide-out Panel (Cấu tạo chi tiết khi click) -->
+    <aside id="part-inspector-panel" class="glass-panel">
+        <div class="inspector-header">
+            <div class="inspector-titles">
+                <h2 id="inspector-title-vi" class="inspector-title-vi">Tên linh kiện</h2>
+                <div id="inspector-title-en" class="inspector-title-en">Part English Name</div>
+            </div>
+            <button id="btn-close-inspector" class="inspector-close-btn" title="Đóng bảng chi tiết">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="inspector-mechanism" class="inspector-badge-mech">Cơ cấu máy</div>
+        <p id="inspector-summary" class="inspector-summary">Mô tả tóm tắt chức năng và nguyên lý hoạt động của chi tiết cơ khí.</p>
+
+        <!-- Technical Specs List -->
+        <div id="inspector-details-list"></div>
+    </aside>
+
+    <!-- Quick Guide Panel (Bottom Left) -->
+    <div class="quick-guide-panel glass-panel">
+        <div class="guide-item"><i class="fa-solid fa-hand-pointer"></i> <span><strong>Click chuột</strong> vào bộ phận bất kỳ để xem cấu tạo & thông số kỹ thuật</span></div>
+        <div class="guide-item"><i class="fa-solid fa-arrows-rotate"></i> <span><strong>Chuột trái:</strong> Xoay 3D | <strong>Chuột phải:</strong> Di chuyển | <strong>Cuộn:</strong> Phóng to/nhỏ</span></div>
+    </div>
+
+    <!-- Hover Tooltip -->
+    <div id="hover-tooltip"></div>
+
+    <!-- Three.js & OrbitControls from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- Application Modules -->
+    <script src="js/audio.js"></script>
+    <script src="js/parts-data.js"></script>
+    <script src="js/models/engine.js"></script>
+    <script src="js/models/planetary.js"></script>
+    <script src="js/models/steering.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
