@@ -8,8 +8,6 @@ Một ứng dụng web mô phỏng 3D thời gian thực chuyên sâu về cơ k
 ## 🚀 Cách Mở Ứng Dụng
 1. **Cách 1 (Nhanh nhất):** Nhấp đúp vào tệp [`start.bat`](start.bat) trong thư mục này.
 2. **Cách 2:** Mở trực tiếp tệp [`index.html`](index.html) bằng bất kỳ trình duyệt nào (Chrome, Edge, Firefox, Brave,...).
-3. **Đường dẫn tệp:**
-   `file:///C:/Users/HP/.gemini/antigravity/scratch/co-khi-3d/index.html`
 
 ---
 
